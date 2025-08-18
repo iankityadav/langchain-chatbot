@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LangChain Chatbot with Llama3.1</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f6f6f6; }
+    #chat-box { width: 400px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 16px #ddd; padding: 20px }
+    #messages { height: 300px; overflow-y: auto; border: 1px solid #eee; padding: 10px; margin-bottom: 15px; border-radius: 6px;}
+    .message { margin-bottom: 8px; }
+    .user { font-weight: bold; color: #007bff; }
+    .bot { font-weight: bold; color: #e67e22; }
+    #input-area { display: flex; }
+    #user-input { flex: 1; padding: 8px; font-size: 16px;}
+    #send-btn { padding: 8px 16px; font-size: 16px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    #send-btn:disabled { background: #aaa;}
+  </style>
+</head>
+<body>
+  <div id="chat-box">
+    <h2>LangChain Chatbot</h2>
+    <div id="messages"></div>
+    <form id="input-area">
+      <input type="text" id="user-input" placeholder="Type your question..." autocomplete="off" required />
+      <button id="send-btn">Send</button>
+    </form>
+  </div>
+
+<script>
+const messagesDiv = document.getElementById('messages');
+const userInput = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+const inputForm = document.getElementById('input-area');
+function appendMessage(text, sender) {
+  const msg = document.createElement('div');
+  msg.className = 'message ' + sender;
+  msg.textContent = sender === 'user' ? `You: ${text}` : `Bot: ${text}`;
+  messagesDiv.appendChild(msg);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+inputForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const question = userInput.value.trim();
+  if (!question) return;
+  appendMessage(question, 'user');
+  userInput.value = '';
+  sendBtn.disabled = true;
+  try {
+    const response = await fetch('/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ message: question })
+    });
+    const data = await response.json();
+    if (data.response) {
+      appendMessage(data.response, 'bot');
+    } else if(data.error) {
+      appendMessage("Error: " + data.error, 'bot');
+    }
+  } catch (err) {
+    appendMessage("Failed to connect to chatbot.", 'bot');
+  } finally {
+    sendBtn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

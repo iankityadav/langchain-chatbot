@@ -1,0 +1,26 @@
+# docker-compose.yml
+services:
+  redis:
+    image: redis:8
+    ports:
+      - "6379:6379"
+  chatbot:
+    build: .
+    container_name: langchain-node
+    environment:
+      REDIS_URL: "redis://redis:6379"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+    volumes:
+      - .:/usr/src/app
+    command: ["npm", "start"]
+  mockapi:
+    image: node:22-alpine
+    working_dir: /usr/src/app
+    command: ["npm", "run", "mockapi"]
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "3001:3001"
